@@ -59,22 +59,23 @@ cat > sub.py <<EOF
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json, base64
 
+node = {
+    "v": "2",
+    "ps": "vmess-argo",
+    "add": "$CF_TUNNEL_DOMAIN",
+    "port": "443",
+    "id": "$UUID",
+    "aid": "0",
+    "net": "ws",
+    "type": "none",
+    "host": "$CF_TUNNEL_DOMAIN",
+    "path": "/vmess-argo",
+    "tls": "tls"
+}
+vmess = "vmess://" + base64.b64encode(json.dumps(node).encode()).decode()
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        node = {
-            "v": "2",
-            "ps": "vmess-argo",
-            "add": "$CF_TUNNEL_DOMAIN",
-            "port": "443",
-            "id": "$UUID",
-            "aid": "0",
-            "net": "ws",
-            "type": "none",
-            "host": "$CF_TUNNEL_DOMAIN",
-            "path": "/vmess-argo",
-            "tls": "tls"
-        }
-        vmess = "vmess://" + base64.b64encode(json.dumps(node).encode()).decode()
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
@@ -84,4 +85,27 @@ HTTPServer(("", $SUB_PORT), Handler).serve_forever()
 EOF
 nohup python3 sub.py > sub.log 2>&1 &
 
-echo "[SUCCESS] 部署完成，订阅链接：http://localhost:$SUB_PORT"
+# ===== 直接输出节点链接 =====
+NODE=$(python3 - <<PY
+import json, base64
+node = {
+    "v": "2",
+    "ps": "vmess-argo",
+    "add": "$CF_TUNNEL_DOMAIN",
+    "port": "443",
+    "id": "$UUID",
+    "aid": "0",
+    "net": "ws",
+    "type": "none",
+    "host": "$CF_TUNNEL_DOMAIN",
+    "path": "/vmess-argo",
+    "tls": "tls"
+}
+print("vmess://" + base64.b64encode(json.dumps(node).encode()).decode())
+PY
+)
+
+echo "[SUCCESS] 部署完成"
+echo "订阅服务：http://localhost:$SUB_PORT"
+echo "节点链接：$NODE"
+
