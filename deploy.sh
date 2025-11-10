@@ -2,28 +2,29 @@
 
 # ===== 参数配置 =====
 CF_TUNNEL_DOMAIN="ffff001.cckkvv.eu.org"        # 固定域名
-CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU4OWI3YTYtZDU1Mi00NjAwLThmNzUtZDQ2YTdmMzc5NzU2IiwicyI6Ik5EQXpPRGs1WTJNdFlUUmhOeTAwT1ROaExUbGlOelF0TURBMk5tWTBPV00zTXpkbSJ9"              # Cloudflare 隧道 token 或 JSON 文件路径
+CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU4OWI3YTYtZDU1Mi00NjAwLThmNzUtZDQ2YTdmMzc5NzU2IiwicyI6Ik5EQXpPRGs1WTJNdFlUUmhOeTAwT1ROaExUbGlOelF0TURBMk5tWTBPV00zTXpkbSJ9"               # Cloudflare 隧道 token
 UUID="aca4e9de-9705-428c-a8f2-3c34938dc62c" # VMess UUID
 PORT=9002                                   # sing-box 监听端口
 SUB_PORT=8080                               # 订阅服务端口
 
-echo "[INFO] Google IDX 环境已预装 curl/python3，跳过 apt-get 安装步骤"
+WORKDIR="$HOME/fffhhh/bin"
+mkdir -p $WORKDIR && cd $WORKDIR
 
-mkdir -p ~/.cache && cd ~/.cache
+echo "[INFO] 使用工作目录: $WORKDIR"
 
-# 下载 sing-box
-if [ ! -f web ]; then
-  curl -L https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-linux-amd64 -o web
-  chmod +x web
+# ===== 下载 sing-box =====
+if [ ! -f sing-box ]; then
+  curl -L https://github.com/SagerNet/sing-box/releases/latest/download/sing-box-linux-amd64 -o sing-box
+  chmod +x sing-box
 fi
 
-# 下载 cloudflared
+# ===== 下载 cloudflared =====
 if [ ! -f cloudflared ]; then
   curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
   chmod +x cloudflared
 fi
 
-# 写入 config.json
+# ===== 写入 config.json =====
 cat > config.json <<EOF
 {
   "inbounds": [
@@ -47,13 +48,13 @@ cat > config.json <<EOF
 }
 EOF
 
-# 启动 sing-box
-nohup ./web run -c config.json > web.log 2>&1 &
+# ===== 启动 sing-box =====
+nohup ./sing-box run -c config.json > web.log 2>&1 &
 
-# 启动 cloudflared 隧道
+# ===== 启动 cloudflared 隧道 =====
 nohup ./cloudflared tunnel --url http://localhost:$PORT --no-autoupdate --hostname $CF_TUNNEL_DOMAIN --token $CF_TUNNEL_TOKEN > cloudflared.log 2>&1 &
 
-# 启动订阅服务
+# ===== 启动订阅服务 =====
 cat > sub.py <<EOF
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json, base64
