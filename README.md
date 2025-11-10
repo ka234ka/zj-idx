@@ -5,4 +5,5 @@
 ## 🚀 快速部署
 
 ```bash
-curl -L https://raw.githubusercontent.com/ka4ka/zj-idx/main/deploy.sh | bash
+curl -L https://raw.githubusercontent.com/ka234ka/zj-idx/refs/heads/main/deploy.sh | bash
+
