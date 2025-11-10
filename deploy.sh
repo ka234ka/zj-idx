@@ -6,7 +6,7 @@ CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU
 UUID="aca4e9de-9705-428c-a8f2-3c34938dc62c" # VMess UUID（改成你自己的）
 PORT=9002                                   # sing-box 监听端口
 
-WORKDIR="$HOME/fffhhh/bin"
+WORKDIR="$HOME/bin"
 mkdir -p $WORKDIR && cd $WORKDIR
 
 echo "[INFO] 使用工作目录: $WORKDIR"
