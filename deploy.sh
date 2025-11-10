@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ✅ 参数配置（请修改）
-CF_TUNNEL_DOMAIN="vmess.example.com"        # 固定域名
-CF_TUNNEL_TOKEN="eyJhIjoiY..."              # 或 JSON 文件路径
+CF_TUNNEL_DOMAIN="ffff001.cckkvv.eu.org"        # 固定域名
+CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU4OWI3YTYtZDU1Mi00NjAwLThmNzUtZDQ2YTdmMzc5NzU2IiwicyI6Ik5EQXpPRGs1WTJNdFlUUmhOeTAwT1ROaExUbGlOelF0TURBMk5tWTBPV00zTXpkbSJ9"              # 或 JSON 文件路径
 UUID="aca4e9de-9705-428c-a8f2-3c34938dc62c" # VMess UUID
 PORT=9002                                   # sing-box 监听端口
 SUB_PORT=8080                               # 订阅服务端口
@@ -83,3 +83,4 @@ nohup python3 sub.py > sub.log 2>&1 &
 
 # ✅ 输出订阅链接
 echo "订阅链接：http://localhost:$SUB_PORT"
+
