@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # ===== 参数配置 =====
-CF_TUNNEL_DOMAIN="ffff001.cckkvv.eu.org"        # 固定域名
-CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU4OWI3YTYtZDU1Mi00NjAwLThmNzUtZDQ2YTdmMzc5NzU2IiwicyI6Ik5EQXpPRGs1WTJNdFlUUmhOeTAwT1ROaExUbGlOelF0TURBMk5tWTBPV00zTXpkbSJ9"               # Cloudflare 隧道 token
-UUID="aca4e9de-9705-428c-a8f2-3c34938dc62c" # VMess UUID
+CF_TUNNEL_DOMAIN="ffff001.cckkvv.eu.org"        # 固定域名（改成你自己的）
+CF_TUNNEL_TOKEN="eyJhIjoiZTQyZTJiODdmZmQwNjYyZTMyNzZiNTExODA2YzlhNjEiLCJ0IjoiYzU4OWI3YTYtZDU1Mi00NjAwLThmNzUtZDQ2YTdmMzc5NzU2IiwicyI6Ik5EQXpPRGs1WTJNdFlUUmhOeTAwT1ROaExUbGlOelF0TURBMk5tWTBPV00zTXpkbSJ9"               # Cloudflare 隧道 token（改成你自己的）
+UUID="aca4e9de-9705-428c-a8f2-3c34938dc62c" # VMess UUID（改成你自己的）
 PORT=9002                                   # sing-box 监听端口
-SUB_PORT=8080                               # 订阅服务端口
 
 WORKDIR="$HOME/fffhhh/bin"
 mkdir -p $WORKDIR && cd $WORKDIR
@@ -54,58 +53,24 @@ nohup ./sing-box run -c config.json > web.log 2>&1 &
 # ===== 启动 cloudflared 隧道 =====
 nohup ./cloudflared tunnel --url http://localhost:$PORT --no-autoupdate --hostname $CF_TUNNEL_DOMAIN --token $CF_TUNNEL_TOKEN > cloudflared.log 2>&1 &
 
-# ===== 启动订阅服务 =====
-cat > sub.py <<EOF
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import json, base64
-
-node = {
-    "v": "2",
-    "ps": "vmess-argo",
-    "add": "$CF_TUNNEL_DOMAIN",
-    "port": "443",
-    "id": "$UUID",
-    "aid": "0",
-    "net": "ws",
-    "type": "none",
-    "host": "$CF_TUNNEL_DOMAIN",
-    "path": "/vmess-argo",
-    "tls": "tls"
-}
-vmess = "vmess://" + base64.b64encode(json.dumps(node).encode()).decode()
-
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(vmess.encode())
-
-HTTPServer(("", $SUB_PORT), Handler).serve_forever()
-EOF
-nohup python3 sub.py > sub.log 2>&1 &
-
 # ===== 直接输出节点链接 =====
-NODE=$(python3 - <<PY
-import json, base64
-node = {
-    "v": "2",
-    "ps": "vmess-argo",
-    "add": "$CF_TUNNEL_DOMAIN",
-    "port": "443",
-    "id": "$UUID",
-    "aid": "0",
-    "net": "ws",
-    "type": "none",
-    "host": "$CF_TUNNEL_DOMAIN",
-    "path": "/vmess-argo",
-    "tls": "tls"
-}
-print("vmess://" + base64.b64encode(json.dumps(node).encode()).decode())
-PY
+NODE=$(node - <<EOF
+const node = {
+  v: "2",
+  ps: "vmess-argo",
+  add: "$CF_TUNNEL_DOMAIN",
+  port: "443",
+  id: "$UUID",
+  aid: "0",
+  net: "ws",
+  type: "none",
+  host: "$CF_TUNNEL_DOMAIN",
+  path: "/vmess-argo",
+  tls: "tls"
+};
+console.log("vmess://" + Buffer.from(JSON.stringify(node)).toString('base64'));
+EOF
 )
 
 echo "[SUCCESS] 部署完成"
-echo "订阅服务：http://localhost:$SUB_PORT"
 echo "节点链接：$NODE"
-
